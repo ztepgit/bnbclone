@@ -20,6 +20,8 @@ import {
   User
 } from 'lucide-react';
 import { mockListings } from '../data/mockListings';
+import AuthModal from '../components/AuthModal';
+import { useAuth } from '../contexts/AuthContext';
 
 const amenityIcons: Record<string, React.ReactNode> = {
   'WiFi': <Wifi className="w-6 h-6" />,
@@ -34,6 +36,9 @@ const amenityIcons: Record<string, React.ReactNode> = {
 export default function DetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const listing = mockListings.find((l) => l.id === id);
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
@@ -93,10 +98,31 @@ export default function DetailsPage() {
               <button className="p-3 rounded-full hover:bg-gray-100 transition-colors">
                 <Globe className="w-4 h-4" />
               </button>
-              <button className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-full hover:shadow-md transition-shadow">
-                <Menu className="w-4 h-4" />
-                <User className="w-5 h-5" />
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => user ? setShowUserMenu(!showUserMenu) : setAuthModalOpen(true)}
+                  className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-full hover:shadow-md transition-shadow"
+                >
+                  <Menu className="w-4 h-4" />
+                  <User className="w-5 h-5" />
+                </button>
+                {user && showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                    <div className="px-4 py-2 border-b border-gray-200">
+                      <p className="text-sm font-medium truncate">{user.email}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        signOut();
+                        setShowUserMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+                    >
+                      Log out
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -288,6 +314,8 @@ export default function DetailsPage() {
           </div>
         </div>
       </main>
+
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
   );
 }
